@@ -136,7 +136,10 @@ async def _charge(
 ) -> str:
     """先校验后扣费，返回给用户看的"消耗"文案。
 
-    卡券由调用方通过 use_card 决定；未显式用卡且鲸币不足时，自动兜底消耗同名卡券。
+    用卡规则：
+        * 显式要求用卡（指令里带"卡"）→ 必须消耗对应卡券；
+        * 没显式要求 → **背包里有对应卡就自动用卡**，没有才扣鲸币；
+        * 鲸币不足时仍然优先兜底用卡（并发/余额不足的兼容路径）。
     扣费发生在 mutate_harem 之前；若事务内因状态变化抛错，本次消耗不退，
     这是契约书允许的"损失一次机会"，换来的是无跨表补偿逻辑、无二次事务。
     """
@@ -145,16 +148,17 @@ async def _charge(
         ok, _bag = await ctx.repo.consume_items(uid, {card_id: 1})
         if not ok:
             raise NotEnoughItem(card_name)
-        return f"{card_name} x1"
+        return f"{card_name} x1（指定用卡）"
+
+    # 自动用卡：有就优先用，不再让玩家先花鲸币
+    bag = await ctx.repo.get_bag(uid)
+    if bag.count(card_id) > 0:
+        ok, _bag = await ctx.repo.consume_items(uid, {card_id: 1})
+        if ok:
+            return f"{card_name} x1（自动用卡）"
 
     user = await ctx.repo.get_user(uid, name)
     if user.coins < cost:
-        # 文案承诺「鲸币不够时会自动用卡」：余额不足时优先兜底用卡，不把人拦在门口。
-        bag = await ctx.repo.get_bag(uid)
-        if bag.count(card_id) > 0:
-            ok, _bag = await ctx.repo.consume_items(uid, {card_id: 1})
-            if ok:
-                return f"{card_name} x1（鲸币不足，自动用卡）"
         raise NotEnoughCoins(cost, user.coins)
     if not await ctx.repo.spend_coins(uid, cost):
         latest = await ctx.repo.get_user(uid, name)  # 并发花掉了余额，取最新余额报错
@@ -172,7 +176,7 @@ async def do_marry(
     target_name: str,
     use_card: bool = False,
 ) -> Card:
-    """娶群友：100 鲸币 或 娶群友卡 x1；初始 10%，每次失败 +10%，第 5 次必中。
+    """娶群友：100 鲸币 或 娶群友卡 x1（背包有卡自动优先用卡）；初始 10%，第 5 次必中。
 
     消耗：MARRY_COST 鲸币（use_card=False）/ card_wife x1（use_card=True）。
     保底：结算后 marry_fail >= MARRY_PITY-1 时强制 100%。
@@ -307,7 +311,7 @@ async def do_divorce(
     target_name: str,
     use_card: bool = False,
 ) -> Card:
-    """离婚：100 鲸币 或 好人卡 x1；50% 起步，第 2 次必中。
+    """离婚：100 鲸币 或 好人卡 x1（背包有卡自动优先用卡）；50% 起步，第 2 次必中。
 
     消耗：DIVORCE_COST 鲸币（use_card=False）/ card_good x1（use_card=True）。
     限制：只能离自己后宫里的目标（owner_uid 必须是自己）。
@@ -429,7 +433,7 @@ async def do_ntr(
     target_name: str,
     use_card: bool = False,
 ) -> Card:
-    """NTR：125 鲸币 或 绿帽卡 x1；5% 起步，每次失败 +5%，第 10 次必中。
+    """NTR：125 鲸币 或 绿帽卡 x1（背包有卡自动优先用卡）；5% 起步，每次失败 +5%，第 10 次必中。
 
     消耗：NTR_COST 鲸币（use_card=False）/ card_green x1（use_card=True，用了就消耗，失败不退）。
     前置：目标必须已被别人娶走；目标挂着钟情卡（loyal buff）时直接拒绝且**不扣费**。

@@ -265,6 +265,19 @@ async def main() -> int:
 
     # 先重新娶回来，再让另一个用户 NTR
     await repo.add_coins(UID, 2000)
+
+    # 自动用卡：背包里有卡时，不传"卡"也应优先消耗卡、不扣鲸币
+    await repo.add_items(UID, {"card_wife": 1})
+    coins_before_auto = (await repo.get_user(UID, "测试群友")).coins
+    await marriage.do_marry(ctx, UID, "测试群友", GROUP, TARGET, "测试老婆", use_card=False)
+    bag_auto = await repo.get_bag(UID)
+    check(
+        "娶群友有卡自动用卡（不扣鲸币）",
+        bag_auto.count("card_wife") == 0
+        and (await repo.get_user(UID, "测试群友")).coins == coins_before_auto,
+        f"card={bag_auto.count('card_wife')} coins={coins_before_auto}->{(await repo.get_user(UID, '测试群友')).coins}",
+    )
+
     for _ in range(5):
         if (await repo.get_harem(GROUP, TARGET)).owner_uid == UID:
             break
