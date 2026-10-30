@@ -1,4 +1,4 @@
-# 上传 GitHub 前的准备清单
+﻿# 上传 GitHub 前的准备清单
 
 仓库根目录 = 本文件夹（`astrbot_plugin_whale_harem/`）。以下命令在**本文件夹内**执行。
 
@@ -20,7 +20,7 @@ astrbot_plugin_whale_harem
 
 ```bash
 git add .
-git commit -m "feat: 赛博鲸鱼馆 v1.4.0（钓鱼/天气/喂食/打工/花园）"
+git commit -m "feat: 赛博鲸鱼馆 v1.5.1（钓鱼/天气/喂食/打工/花园）"
 git remote add origin https://github.com/<你的用户名>/astrbot_plugin_whale_harem.git
 git push -u origin main
 ```
@@ -37,8 +37,8 @@ git push -u origin main
 打 tag 即可让 AstrBot 插件市场识别版本：
 
 ```bash
-git tag v1.4.0
-git push origin v1.4.0
+git tag v1.5.1
+git push origin v1.5.1
 ```
 
 ## 5. 上传前最后检查

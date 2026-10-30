@@ -1,4 +1,4 @@
-"""赛博鲸鱼馆 · AstrBot 插件包。
+﻿"""赛博鲸鱼馆 · AstrBot 插件包。
 
 这个 `__init__.py` 只做两件事：
     1. 让目录成为**真正的包**（而不是命名空间包），`main.py` 里的相对导入
@@ -9,5 +9,5 @@
 否则 AstrBot 加载插件时会触发重复导入与循环依赖。
 """
 
-__version__ = "1.5.0"
+__version__ = "1.5.1"
 __plugin_name__ = "astrbot_plugin_whale_harem"
