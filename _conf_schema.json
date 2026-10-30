@@ -1,0 +1,103 @@
+{
+  "llm_enabled": {
+    "type": "bool",
+    "description": "喂食时是否调用 AstrBot 当前会话的 LLM 生成一句对话",
+    "default": true,
+    "hint": "关闭后使用本地语料，避免小内存机器上额外的网络与 token 开销"
+  },
+  "llm_timeout_sec": {
+    "type": "int",
+    "description": "喂食 LLM 调用超时（秒），超时自动回退本地语料",
+    "default": 12
+  },
+  "render_font_path": {
+    "type": "string",
+    "description": "中文字体文件路径（ttf/otf/ttc）。留空则自动探测系统 Noto Sans CJK / 文泉驿 / 思源黑体",
+    "default": ""
+  },
+  "image_cache_size": {
+    "type": "int",
+    "description": "出图缓存条数上限（每条约 60~120KB，建议 16~32）",
+    "default": 24
+  },
+  "image_cache_ttl_sec": {
+    "type": "int",
+    "description": "出图缓存存活时间（秒）",
+    "default": 300
+  },
+  "render_concurrency": {
+    "type": "int",
+    "description": "同时进行的 Pillow 渲染任务数（2核建议 1~2）",
+    "default": 1
+  },
+  "command_debounce_ms": {
+    "type": "int",
+    "description": "同一用户两次指令的最小间隔（毫秒），防连点压垮服务器",
+    "default": 1500
+  },
+  "db_path": {
+    "type": "string",
+    "description": "数据库文件路径。留空则使用 AstrBot data/plugin_data/<插件名>/whale.db",
+    "default": ""
+  },
+  "fish_bag_limit": {
+    "type": "int",
+    "description": "每人鱼护容量，超出自动折算鲸币",
+    "default": 80
+  },
+  "checkin_base_coins": {
+    "type": "int",
+    "description": "签到基础鲸币",
+    "default": 50
+  },
+  "checkin_streak_step": {
+    "type": "int",
+    "description": "（旧版字段，已废弃；连签加成固定按 20 天曲线）",
+    "default": 0
+  },
+  "checkin_streak_cap": {
+    "type": "int",
+    "description": "（旧版字段，已废弃；连签满额天数固定 20）",
+    "default": 20
+  },
+  "work_cooldown_min": {
+    "type": "int",
+    "description": "打工随机时长下限（分钟），最低 1 小时",
+    "default": 60
+  },
+  "work_cooldown_max": {
+    "type": "int",
+    "description": "打工随机时长上限（分钟），最高 24 小时",
+    "default": 1440
+  },
+  "fish_wait_min": {
+    "type": "int",
+    "description": "钓鱼等待时长下限（分钟），需求要求不短于 5 分钟",
+    "default": 5
+  },
+  "fish_wait_max": {
+    "type": "int",
+    "description": "钓鱼等待时长上限（分钟），需求要求不超过 60 分钟",
+    "default": 60
+  },
+  "enabled_groups": {
+    "type": "list",
+    "description": "仅在这些群启用（群号列表），留空表示所有群",
+    "default": []
+  },
+  "garden_sun_start": {
+    "type": "int",
+    "description": "花园晒太阳开始小时（0-23，默认北京时间 7 点）",
+    "default": 7
+  },
+  "garden_sun_end": {
+    "type": "int",
+    "description": "花园晒太阳结束小时（0-23，默认北京时间 19 点）",
+    "default": 19
+  },
+  "garden_timezone": {
+    "type": "string",
+    "description": "花园时段判断用的时区（IANA 名称，如 Asia/Shanghai）",
+    "default": "Asia/Shanghai"
+  }
+}
