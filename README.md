@@ -51,7 +51,7 @@ astrbot_plugin_whale_harem/
 ```bash
 # 1) 把整个目录放到 AstrBot 插件目录
 cd AstrBot/data/plugins
-git clone https://github.com/<你的用户名>/astrbot_plugin_whale_harem.git astrbot_plugin_whale_harem
+git clone https://github.com/Sparsoon/astrbot_plugin_whale_harem.git astrbot_plugin_whale_harem
 
 # 2) 安装依赖（AstrBot 一般已带 Pillow，aiosqlite 需要确认）
 pip install -r astrbot_plugin_whale_harem/requirements.txt
