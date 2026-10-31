@@ -110,6 +110,11 @@ class PluginConfig:
         cfg.work_cooldown_max = _as_int(
             get("work_cooldown_max", cfg.work_cooldown_max), cfg.work_cooldown_max, 1, 1440
         )
+        # 旧版默认值是 20~180，升级后配置文件里会残留；按新规则迁移成 1 小时~24 小时
+        if cfg.work_cooldown_min == 20 and cfg.work_cooldown_max == 180:
+            cfg.work_cooldown_min, cfg.work_cooldown_max = 60, 1440
+        if cfg.work_cooldown_min < 60:
+            cfg.work_cooldown_min = 60
         if cfg.work_cooldown_max < cfg.work_cooldown_min:
             cfg.work_cooldown_min, cfg.work_cooldown_max = cfg.work_cooldown_max, cfg.work_cooldown_min
         cfg.fish_wait_min = _as_int(get("fish_wait_min", cfg.fish_wait_min), cfg.fish_wait_min, 1, 180)
