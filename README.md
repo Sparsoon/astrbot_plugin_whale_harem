@@ -3,7 +3,7 @@
 > 群共享池塘钓鱼 / 签到喂食打工 / 娶群友与后宫 / 全套指令 Pillow 出图
 > **为 2 核 2G 服务器设计**：全异步、零轮询、连接池封顶 5 条、出图缓存三重限流。
 
-![version](https://img.shields.io/badge/version-1.5.2-4D6BFE) ![runtime](https://img.shields.io/badge/python-3.10%2B-blue) ![db](https://img.shields.io/badge/sqlite-WAL-green) ![license](https://img.shields.io/badge/license-MIT-green)
+![version](https://img.shields.io/badge/version-1.5.3-4D6BFE) ![runtime](https://img.shields.io/badge/python-3.10%2B-blue) ![db](https://img.shields.io/badge/sqlite-WAL-green) ![license](https://img.shields.io/badge/license-MIT-green)
 
 ---
 
@@ -70,6 +70,20 @@ apt install fonts-noto-cjk        # Debian/Ubuntu
 
 **时区**：每日 4:00 重置按**服务器本地时间**计算。VPS 多为 UTC，如果想让"凌晨 4 点"对应国内时间，
 请在启动 AstrBot 前设置 `TZ=Asia/Shanghai`（systemd 里写 `Environment=TZ=Asia/Shanghai`）。
+
+## 3.5 图片里的中文是方块/问号？
+
+插件会按顺序找中文字体：配置 
+ender_font_path → 环境变量 WHALE_FONT_PATH → 系统字体
+（Linux / macOS / Android /system/fonts / Windows）→ **插件自带字体** ssets/fonts/NotoSansSC-Whale.ttf。
+所以正常安装不会因为手机端缺少中文字体而变成方块。
+
+如果仍然是方块，看启动日志里的 鲸鱼馆中文字体: <路径>：
+
+* 日志显示 未找到中文字体：把 
+ender_font_path 指到一个中文 ttf/otf/ttc；
+* Android/Termux：可填 /system/fonts/NotoSansCJK-Regular.ttc；
+* 自带字体只覆盖常用中文，生僻字昵称仍可能缺字，这种情况请配置系统完整字体。
 
 ## 4. 自测（不需要 AstrBot / QQ）
 

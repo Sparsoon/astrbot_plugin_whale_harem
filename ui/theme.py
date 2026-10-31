@@ -72,12 +72,22 @@ _FONT_CANDIDATES = (
     "/System/Library/Fonts/PingFang.ttc",
     "/System/Library/Fonts/STHeiti Medium.ttc",
     "/System/Library/Fonts/Hiragino Sans GB.ttc",
+    # Android / Termux（"泡泡版"等手机端 AstrBot 常见）
+    "/system/fonts/NotoSansCJK-Regular.ttc",
+    "/system/fonts/NotoSansCJKsc-Regular.otf",
+    "/system/fonts/NotoSansCJK.ttc",
+    "/system/fonts/NotoSansSC-Regular.otf",
+    "/system/fonts/DroidSansFallback.ttf",
+    "/system/fonts/DroidSansFallbackFull.ttf",
     # Windows
     "C:/Windows/Fonts/msyh.ttc",
     "C:/Windows/Fonts/msyhbd.ttc",
     "C:/Windows/Fonts/simhei.ttf",
     "C:/Windows/Fonts/simsun.ttc",
 )
+
+# 插件自带的中文字体兜底（Noto Sans SC 子集，OFL 许可，见 assets/fonts/OFL.txt）
+_BUNDLED_FONT = Path(__file__).resolve().parents[1] / "assets" / "fonts" / "NotoSansSC-Whale.ttf"
 
 _font_path: str | None = None
 _font_probed = False
@@ -99,6 +109,9 @@ def resolve_font_path(preferred: str = "") -> str | None:
     if env_font:
         candidates.append(env_font)
     candidates.extend(_FONT_CANDIDATES)
+    # 系统字体都找不到时（常见于精简 Android / Docker），用插件自带字体兜底
+    if _BUNDLED_FONT.is_file():
+        candidates.append(str(_BUNDLED_FONT))
 
     for path in candidates:
         try:
@@ -112,7 +125,10 @@ def resolve_font_path(preferred: str = "") -> str | None:
         except OSError:
             continue
     _font_path = None
-    log.warning("未找到中文字体，图片里的中文会变成方块；请在配置 render_font_path 指定 ttf/otf/ttc")
+    log.warning(
+        "未找到中文字体，图片里的中文会变成方块；"
+        "请在配置 render_font_path 指定 ttf/otf/ttc（Android 可用 /system/fonts/NotoSansCJK-Regular.ttc）"
+    )
     return None
 
 
