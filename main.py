@@ -386,13 +386,26 @@ class WhaleHaremPlugin(Star):
         return await self._emit(event, result)
 
     async def _render_path(self, card_obj: Card) -> str:
-        """只出图不包装消息：监听器 / 指令层共用。"""
+        """只出图不包装消息：监听器 / 指令层共用。
+
+        失败时先把卡片压成紧凑版重试一次，仍失败才降级文字；日志带卡片信息，方便定位。
+        """
         if self._renderer is None:
             return ""
         try:
-            return await asyncio.wait_for(self._renderer.render(card_obj), timeout=25.0)
+            return await asyncio.wait_for(self._renderer.render(card_obj), timeout=40.0)
         except Exception as exc:  # noqa: BLE001
-            log.warning(f"渲染失败，降级文字: {exc!r}")
+            log.warning(
+                f"渲染失败，尝试紧凑重试: title={card_obj.title!r} "
+                f"owner={card_obj.owner!r} blocks={len(card_obj.blocks)} err={exc!r}"
+            )
+        try:
+            return await asyncio.wait_for(self._renderer.render(card_obj.compact()), timeout=25.0)
+        except Exception as exc:  # noqa: BLE001
+            log.warning(
+                f"紧凑卡也渲染失败，降级文字: title={card_obj.title!r} "
+                f"owner={card_obj.owner!r} err={exc!r}"
+            )
             return ""
 
     async def _emit(self, event: AstrMessageEvent, card_obj: Card) -> Any:
@@ -402,7 +415,7 @@ class WhaleHaremPlugin(Star):
         path = await self._render_path(card_obj)
         if path:
             return event.image_result(path)
-        return event.plain_result(card_obj.to_text())
+        return event.plain_result(card_obj.to_text(900))
 
     # ================================================================ 指令
     # ---- 基础

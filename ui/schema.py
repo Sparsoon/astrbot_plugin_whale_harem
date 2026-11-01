@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Any, Sequence
 
 # 预制插画：(胖鱼, 鱼, 池塘, 婚姻, 商店, 打工, 签到, 背包, 错误, 无)
@@ -125,7 +125,18 @@ class Card:
         return hashlib.md5(raw.encode("utf-8")).hexdigest()
 
     # -------------------------------------------------------------- 兜底
-    def to_text(self) -> str:
+    def compact(self) -> "Card":
+        """渲染超时/失败时的紧凑版：只保留标题、前 2 个统计和前 2 块。"""
+        small = replace(
+            self,
+            subtitle=(self.subtitle or "")[:32],
+            stats=self.stats[:2],
+            blocks=self.blocks[:2],
+            footer=(self.footer or "")[:40],
+        )
+        return small.validate()
+
+    def to_text(self, limit: int = 900) -> str:
         """图片渲染失败时的纯文本兜底，保证用户永远有回复。"""
         out: list[str] = [f"【{self.title}】"]
         if self.subtitle:
@@ -146,7 +157,10 @@ class Card:
                 out.append(f"  {block.footer}")
         if self.footer:
             out.append(self.footer)
-        return "\n".join(out)
+        text = "\n".join(out)
+        if limit and len(text) > limit:
+            text = text[:limit].rsplit("\n", 1)[0] + "\n…（内容太长已截断，发 /帮助 查看指令）"
+        return text
 
     def validate(self) -> "Card":
         """防止 service 层塞进脏数据把渲染器搞崩：就地裁剪超长内容。"""
