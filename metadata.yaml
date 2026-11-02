@@ -1,7 +1,7 @@
 ﻿name: astrbot_plugin_whale_harem
 display_name: 赛博鲸鱼馆 · 钓鱼与后宫
 desc: 群共享池塘钓鱼（抛竿等待/群聊咬钩）、签到喂食打工（喂 bot / 上工收工）、娶群友与后宫、仓库、天气与随机品质、DeepSeek 蓝鲸鱼娘 Pillow 出图。钓鱼打工可并行，全异步 + 惰性重置，2核2G 可跑。
-version: 1.5.4
+version: 1.6.0
 author: 煤球
 repo: https://github.com/Sparsoon/astrbot_plugin_whale_harem
 astrbot_version: ">=4.9.0"

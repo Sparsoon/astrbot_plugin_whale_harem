@@ -345,7 +345,7 @@ _RAW: tuple[ItemDef, ...] = (
         "好人卡",
         C.RARITY_DAZI,
         CAT_CARD,
-        "体面地结束一段关系，免 100 鲸币。",
+        "体面地结束一段关系，免 150 鲸币。",
         sell=40,
         usable=True,
         aliases=("好人卡牌",),

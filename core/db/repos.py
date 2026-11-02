@@ -304,6 +304,31 @@ class Repo:
         return User.from_row(row) if row is not None else None
 
     # ================================================================ 花园
+    async def clear_daily_marriages(self, today: str) -> int:
+        """每天 4 点后的首次访问：清空所有群的夫妻/NTR 关系（owner 置空）。
+
+        用 kv 里的 ``marry_clear_day`` 做全局标记，事务内 check + update + mark，
+        并发时只有第一个请求会真正清理，不会把当天新结的婚也一起清掉。
+        """
+
+        async def _tx(conn: aiosqlite.Connection) -> int:
+            cur = await conn.execute("SELECT v FROM kv WHERE k=?", ("marry_clear_day",))
+            row = await cur.fetchone()
+            if row is not None and str(row[0]) == today:
+                return 0
+            cur = await conn.execute(
+                "UPDATE harem SET owner_uid='', owner_name='' WHERE owner_uid != ''"
+            )
+            changed = int(cur.rowcount or 0)
+            await conn.execute(
+                "INSERT INTO kv(k, v) VALUES('marry_clear_day', ?) "
+                "ON CONFLICT(k) DO UPDATE SET v=excluded.v",
+                (today,),
+            )
+            return changed
+
+        return int(await self.db.run_tx(_tx))
+
     async def get_garden(self, group_id: str, uid: str) -> Garden | None:
         row = await self.db.fetch_one(
             "SELECT * FROM gardens WHERE group_id=? AND uid=?", (group_id, uid)

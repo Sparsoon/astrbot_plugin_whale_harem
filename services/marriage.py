@@ -17,6 +17,7 @@ from typing import Any
 from ..core import constants as C
 from ..core import rng as R
 from ..core.context import SvcCtx, fmt_num, settle_harem_day
+from ..core.time_utils import day_key
 from ..core.errors import (
     AlreadyOwned,
     NotEnoughCoins,
@@ -166,6 +167,18 @@ async def _charge(
     return f"{cost} 鲸币"
 
 
+async def _daily_clear(ctx: SvcCtx) -> None:
+    """每日 4 点后的首次访问清空所有婚姻关系；失败只记日志，不影响主流程。"""
+    if not getattr(ctx.cfg, "marry_daily_clear", True):
+        return
+    try:
+        await ctx.repo.clear_daily_marriages(day_key())
+    except Exception as exc:  # noqa: BLE001
+        from ..log import log
+
+        log.warning(f"每日清空婚姻关系失败（不影响本次操作）: {exc!r}")
+
+
 # ================================================================ 娶群友
 async def do_marry(
     ctx: SvcCtx,
@@ -183,6 +196,7 @@ async def do_marry(
     成功：owner=uid、恩爱值 +5、chase_count +1；失败：marry_fail +1、chase_count +1。
     注意：成功率只与失败次数有关，与喂食好感无关（两个系统已解耦）。
     """
+    await _daily_clear(ctx)
     _require_group(group_id)
     _require_target(target_uid, uid, "不能娶自己啦")
     display_name = _name_or_tail(name, uid)
@@ -318,6 +332,7 @@ async def do_divorce(
     成功：owner 清空、divorce_fail 归零、好感腰斩，目标回到公共老婆池；
     失败：divorce_fail +1，提示下次成功率。
     """
+    await _daily_clear(ctx)
     _require_group(group_id)
     _require_target(target_uid, uid, "不能和自己离婚啦")
     display_name = _name_or_tail(name, uid)
@@ -440,6 +455,7 @@ async def do_ntr(
     成功：owner 变成自己、ntr_count +1、ntr_fail/marry_fail 归零、好感 -10（最低 0）；
     失败：ntr_fail +1。
     """
+    await _daily_clear(ctx)
     _require_group(group_id)
     _require_target(target_uid, uid, "不能 NTR 自己啦")
     display_name = _name_or_tail(name, uid)
@@ -569,6 +585,7 @@ async def do_ntr(
 # ================================================================ 我的后宫
 async def do_harem(ctx: SvcCtx, uid: str, name: str, group_id: str) -> Card:
     """我的后宫：最近 N 条（默认 10），显示好感 / 被追求次数 / 持续天数 / 被 NTR 次数。"""
+    await _daily_clear(ctx)
     _require_group(group_id)
     display_name = _name_or_tail(name, uid)
     rows = await ctx.repo.list_harem(group_id, uid, C.HAREM_DISPLAY_LIMIT)
@@ -618,6 +635,7 @@ async def do_harem(ctx: SvcCtx, uid: str, name: str, group_id: str) -> Card:
 # ================================================================ 恩爱榜
 async def do_love_ranking(ctx: SvcCtx, group_id: str) -> Card:
     """恩爱榜：本群按好感度排序的前 10 对，前三名带奖牌。"""
+    await _daily_clear(ctx)
     _require_group(group_id)
     rows = await ctx.repo.affection_ranking(group_id, C.HAREM_DISPLAY_LIMIT)
 
@@ -654,6 +672,7 @@ async def do_love_ranking(ctx: SvcCtx, group_id: str) -> Card:
 # ================================================================ 公共老婆
 async def do_public_wives(ctx: SvcCtx, group_id: str) -> Card:
     """公共老婆：还没被娶走且群里有记录的目标 + 被 NTR 最多的倒霉蛋。"""
+    await _daily_clear(ctx)
     _require_group(group_id)
     public = await ctx.repo.public_targets(group_id, C.HAREM_DISPLAY_LIMIT)
     ntr = await ctx.repo.ntr_ranking(group_id, 5)

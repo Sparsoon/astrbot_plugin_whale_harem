@@ -490,7 +490,7 @@ class WhaleHaremPlugin(Star):
     # ---- 社交
     @filter.command("娶群友", alias={"娶妻", "求婚", "marry"})
     async def cmd_marry(self, event: AstrMessageEvent):
-        """消耗 100 鲸币或娶群友卡，10% 起，每次 +10%，5 次必中。"""
+        """消耗 150 鲸币或娶群友卡，10% 起，每次 +10%，5 次必中。"""
         arg = self._args(event)
         return await self._run(
             event,
@@ -500,7 +500,7 @@ class WhaleHaremPlugin(Star):
 
     @filter.command("离婚", alias={"分手", "divorce"})
     async def cmd_divorce(self, event: AstrMessageEvent):
-        """消耗 100 鲸币或好人卡，50% 成功，2 次必中。"""
+        """消耗 150 鲸币或好人卡，50% 成功，2 次必中。"""
         arg = self._args(event)
         return await self._run(
             event,
@@ -510,7 +510,7 @@ class WhaleHaremPlugin(Star):
 
     @filter.command("ntr", alias={"NTR", "绿帽", "牛头人"})
     async def cmd_ntr(self, event: AstrMessageEvent):
-        """消耗 125 鲸币或绿帽卡，5% 起，每次 +5%，10 次必中。"""
+        """消耗 200 鲸币或绿帽卡，5% 起，每次 +5%，10 次必中。"""
         arg = self._args(event)
         return await self._run(
             event,
@@ -692,7 +692,7 @@ class WhaleHaremPlugin(Star):
                         "签到 —— 基础 50，连续 20 天涨到 100，送随机饵料",
                         "补签 —— 消耗补签卡，补回漏签的一天",
                         "喂食 [白米饭|自动 白米饭] —— 每天早/中/晚 3 次，可设自动购买",
-                        "打工 —— 上工后等 1~24 小时，到点后随便发条群消息自动收工，工资=时长×0.35",
+                        "打工 —— 上工后等 1~24 小时，到点后随便发条群消息自动收工，工资=时长×0.32",
                     ],
                 ),
                 list_block(
@@ -708,9 +708,9 @@ class WhaleHaremPlugin(Star):
                 list_block(
                     "💘 社交",
                     [
-                        "娶群友 @TA [卡] —— 100 鲸币，有卡自动用卡，10% 起，5 次必中",
-                        "离婚 @TA [卡] —— 100 鲸币，有卡自动用卡，50%，2 次必中",
-                        "ntr @TA [卡] —— 125 鲸币，有卡自动用卡，5% 起，10 次必中",
+                        "娶群友 @TA [卡] —— 150 鲸币，有卡自动用卡，10% 起，5 次必中",
+                        "离婚 @TA [卡] —— 150 鲸币，有卡自动用卡，50%，2 次必中",
+                        "ntr @TA [卡] —— 200 鲸币，有卡自动用卡，5% 起，10 次必中",
                         "我的后宫 / 恩爱榜 / 公共老婆",
                     ],
                 ),

@@ -99,5 +99,10 @@
     "type": "string",
     "description": "花园时段判断用的时区（IANA 名称，如 Asia/Shanghai）",
     "default": "Asia/Shanghai"
+  },
+  "marry_daily_clear": {
+    "type": "bool",
+    "description": "每日 4 点清空所有婚姻/NTR 关系（惰性：当天第一次使用社交指令时执行）",
+    "default": true
   }
 }

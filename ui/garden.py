@@ -255,12 +255,15 @@ def water_card(
     mutation_gain: int,
     water_count: int,
     mutation_capped: bool = False,
+    stage_up: str = "",
 ) -> Card:
     """浇水面板必须窄：标题 + 一行结果，无 blocks、无 stats。"""
     if mutation_capped:
         subtitle = f"成长 +{growth_gain} · 突变已封顶 · 今日第 {water_count} 次"
     else:
         subtitle = f"成长 +{growth_gain} · 突变 +{mutation_gain} · 今日第 {water_count} 次"
+    if stage_up:
+        subtitle += f" · 🌱 进入{stage_up}"
     c = _green_card(
         "浇水",
         subtitle,
@@ -280,11 +283,15 @@ def fertilize_card(
     used: int,
     limit: int,
     mutation_capped: bool = False,
+    stage_up: str = "",
 ) -> Card:
     mutation_text = "已封顶" if mutation_capped else f"+{mutation_gain}"
+    subtitle = f"成长 +{growth_gain} · 突变 {mutation_text}"
+    if stage_up:
+        subtitle += f" · 🌱 进入{stage_up}"
     c = _green_card(
         f"施肥 · {fert_name}",
-        f"成长 +{growth_gain} · 突变 {mutation_text}",
+        subtitle,
         badge=f"{used}/{limit}",
         tone=_TONE_SUCCESS,
         footer="每天最多 2 次；氮长成长、磷长突变、钾更均衡",
@@ -315,11 +322,15 @@ def sun_card(
     growth_gain: int,
     mutation_gain: int,
     mutation_capped: bool = False,
+    stage_up: str = "",
 ) -> Card:
     mutation_text = "已封顶" if mutation_capped else f"{mutation_gain:+d}"
+    subtitle = f"成长 +{growth_gain} · 突变 {mutation_text}"
+    if stage_up:
+        subtitle += f" · 🌱 进入{stage_up}"
     c = _green_card(
         f"晒太阳 · {weather_text}",
-        f"成长 +{growth_gain} · 突变 {mutation_text}",
+        subtitle,
         badge="每日 1 次",
         tone=_TONE_SUCCESS,
         footer="天气越好收益越高，雷雨还会掉突变",

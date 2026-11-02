@@ -56,6 +56,7 @@ class PluginConfig:
     work_cooldown_max: int = C.WORK_MAX_MINUTES
     fish_wait_min: int = C.FISH_WAIT_MIN
     fish_wait_max: int = C.FISH_WAIT_MAX
+    marry_daily_clear: bool = True
     garden_sun_start: int = C.GARDEN_SUN_START_HOUR
     garden_sun_end: int = C.GARDEN_SUN_END_HOUR
     garden_timezone: str = C.GARDEN_TIMEZONE
@@ -122,6 +123,9 @@ class PluginConfig:
         if cfg.fish_wait_max < cfg.fish_wait_min:
             cfg.fish_wait_min, cfg.fish_wait_max = cfg.fish_wait_max, cfg.fish_wait_min
 
+        cfg.marry_daily_clear = _as_bool(
+            get("marry_daily_clear", cfg.marry_daily_clear), cfg.marry_daily_clear
+        )
         cfg.garden_sun_start = _as_int(
             get("garden_sun_start", cfg.garden_sun_start), cfg.garden_sun_start, 0, 23
         )

@@ -201,7 +201,7 @@ class Harness:
         watered_ts: int = 0,
         sun_ts: int | None = None,
         dead: int = 0,
-        seed_id: str = "seed_e",
+        seed_id: str = "seed_a",
     ) -> Garden:
         """直接落一株花园（测试专用：growth / planted_ts / watered_ts 想设多少设多少）。"""
         now = self.clock.value
@@ -427,6 +427,15 @@ async def case_02_sprout(h: Harness) -> None:
         return
     plant = plants.get_plant(garden.plant_id)
 
+    # 跨阶段：99 -> 浇水跨过 100，动作面板应提示进入发芽期
+    garden.growth = 99
+    garden.planted_ts = h.clock.value
+    await h.repo.save_garden(garden)
+    water_card = await garden_service.do_water(h.ctx, uid, "播种者", gid)
+    check("浇水跨阶段提示「进入发芽期」", "进入发芽期" in water_card.to_text(),
+          water_card.to_text()[:80])
+
+    garden = await h.load(uid, gid)
     garden.growth = 100
     garden.planted_ts = h.clock.value
     await h.repo.save_garden(garden)
@@ -651,8 +660,8 @@ async def case_05_sun(h: Harness) -> None:
     rain = await h.load("u-sun-rain", "g-sun-rain")
     check("晴天卡标题带天气", "晴天" in card_sunny.title, card_sunny.title)
     check("小雨卡标题带天气", "小雨" in card_rain.title, card_rain.title)
-    check("晴天 +15 成长 / 小雨 +5 成长",
-          int(sunny.growth) == 15 and int(rain.growth) == 5,
+    check("晴天 +30 成长 / 小雨 +14 成长",
+          int(sunny.growth) == 30 and int(rain.growth) == 14,
           f"晴 {sunny.growth} / 雨 {rain.growth}")
     check("晴天突变高于小雨", int(sunny.mutation) > int(rain.mutation),
           f"{sunny.mutation} / {rain.mutation}")

@@ -60,15 +60,15 @@ FERT_SPECS: dict[str, tuple[str, str, int, int]] = {
 SUN_DAILY_LIMIT = 1                           # 晒太阳每天 1 次
 # 天气 -> (成长, 突变)：天气 key 见 core/weather.py
 SUN_WEATHER_GAINS: dict[str, tuple[int, int]] = {
-    "sunny": (15, 3),
-    "cloudy": (10, 2),
-    "rain": (5, 0),
-    "storm": (2, -2),
-    "fog": (6, 1),
-    "meteor": (18, 5),
-    "cold": (3, 0),
+    "sunny": (30, 8),
+    "cloudy": (24, 6),
+    "rain": (14, 3),
+    "storm": (8, -2),
+    "fog": (18, 5),
+    "meteor": (42, 12),
+    "cold": (10, 1),
 }
-SUN_DEFAULT_GAIN = (5, 0)                     # 未知天气的兜底
+SUN_DEFAULT_GAIN = (12, 3)                    # 未知天气的兜底
 
 THIRST_DAYS = 2                               # ≥2 天没浇水：缺水（成长 -50%）
 WITHER_DAYS = 5                               # ≥5 天没浇水：枯萎
@@ -212,13 +212,25 @@ def _stage_index(growth: int) -> int:
     return max(0, min(len(STAGES) - 1, value // STAGE_CAP))
 
 
-def _growth_speed(plant) -> float:
-    """按植物品种的基准生长时间给成长速度：常见作物快、传说植物慢。"""
+# 低阶种子加速：C/D/E 的养成周期缩短，避免新手种一周还是小蓝
+SEED_GRADE_SPEED: dict[str, float] = {
+    "S": 1.0,
+    "A": 1.0,
+    "B": 1.0,
+    "C": 1.15,
+    "D": 1.30,
+    "E": 1.45,
+}
+
+
+def _growth_speed(plant, seed_grade: str = "") -> float:
+    """按植物品种 + 种子档位给成长速度：常见作物快、传说植物慢，低阶种子额外加速。"""
     minutes = int(getattr(plant, "grow_minutes", 0) or 0)
-    if minutes <= 0:
-        return 1.0
-    ratio = 300.0 / max(60, minutes)          # 300 分钟（小紫）为基准
-    return max(0.45, min(1.6, ratio ** 0.5))
+    base = 1.0
+    if minutes > 0:
+        ratio = 300.0 / max(60, minutes)      # 300 分钟（小紫）为基准
+        base = max(0.45, min(1.6, ratio ** 0.5))
+    return base * SEED_GRADE_SPEED.get(str(seed_grade or "").upper(), 1.0)
 
 
 def _scale(base: int, mult: float, speed: float = 1.0) -> int:
@@ -262,7 +274,7 @@ def _settle(garden: Garden, now: int) -> tuple[Garden, _Status, bool]:
             if elapsed_hours > 0:
                 capped = elapsed_hours > PASSIVE_CATCHUP_HOURS
                 grant_hours = PASSIVE_CATCHUP_HOURS if capped else elapsed_hours
-                speed = _growth_speed(_get_plant(garden.plant_id))
+                speed = _growth_speed(_get_plant(garden.plant_id), _seed_grade(garden.seed_id))
                 gain = int(round(grant_hours * PASSIVE_PER_HOUR * speed * status.mult))
                 if int(garden.growth) < GROWTH_MAX:
                     garden.growth = min(GROWTH_MAX, int(garden.growth) + gain)
@@ -689,9 +701,10 @@ async def _load_garden(ctx: SvcCtx, group_id: str, uid: str) -> Garden:
 
 async def _load_alive(
     ctx: SvcCtx, group_id: str, uid: str, now: int
-) -> tuple[Garden, _Status, object | None]:
-    """读 + 惰性结算 + 枯萎检查；成功路径由调用方负责 save。"""
+) -> tuple[Garden, _Status, object | None, int]:
+    """读 + 惰性结算 + 枯萎检查；返回结算前的阶段，用于面板提示升阶。"""
     garden = await _load_garden(ctx, group_id, uid)
+    stage_before = int(garden.stage)
     garden, status, _changed = _settle(garden, now)
     if garden.dead:
         # 枯萎状态要落库，避免用户反复看到"刚枯"的旧数据
@@ -701,7 +714,7 @@ async def _load_alive(
             hint="/收获 清理掉它，然后 /播种 重新开始",
             commands=["/收获", "/播种"],
         )
-    return garden, status, _get_plant(garden.plant_id)
+    return garden, status, _get_plant(garden.plant_id), stage_before
 
 
 # ---------------------------------------------------------------- 6 个入口
@@ -813,7 +826,7 @@ async def do_sow(ctx: SvcCtx, uid: str, name: str, group_id: str, arg: str = "")
 async def do_water(ctx: SvcCtx, uid: str, name: str, group_id: str) -> Card:
     """``/浇水``：每小时 1 次，+8 成长 / +2 突变（当天第 4 次起突变 +0）。"""
     now = now_ts()
-    garden, status, plant = await _load_alive(ctx, group_id, uid, now)
+    garden, status, plant, stage_before = await _load_alive(ctx, group_id, uid, now)
     if int(garden.growth) >= GROWTH_MAX:
         raise WhaleError("已经成熟了，先 /收获 吧", hint="收获后才能重新播种", commands=["/收获"])
 
@@ -830,7 +843,7 @@ async def do_water(ctx: SvcCtx, uid: str, name: str, group_id: str) -> Card:
     today = day_key(now)
     water_count = (int(garden.water_count) if garden.watered_day == today else 0) + 1
 
-    growth_gain = _scale(WATER_GROWTH, status.mult, _growth_speed(plant))
+    growth_gain = _scale(WATER_GROWTH, status.mult, _growth_speed(plant, _seed_grade(garden.seed_id)))
     before = int(garden.growth)
     garden.growth = min(GROWTH_MAX, before + growth_gain)
     growth_gain = int(garden.growth) - before
@@ -842,6 +855,7 @@ async def do_water(ctx: SvcCtx, uid: str, name: str, group_id: str) -> Card:
     garden.watered_day = today
     garden.water_count = water_count
     garden.stage = _stage_index(garden.growth)
+    stage_up = STAGES[garden.stage] if garden.stage > stage_before else ""
     await ctx.repo.save_garden(garden)
 
     return garden_ui.water_card(
@@ -851,6 +865,7 @@ async def do_water(ctx: SvcCtx, uid: str, name: str, group_id: str) -> Card:
         mutation_gain=mutation_gain,
         water_count=water_count,
         mutation_capped=mutation_delta > 0 and mutation_gain == 0,
+        stage_up=stage_up,
     )
 
 
@@ -859,7 +874,7 @@ async def do_fertilize(
 ) -> Card:
     """``/施肥 氮|磷|钾``：每天 2 次，三种肥料成长/突变侧重不同。"""
     now = now_ts()
-    garden, status, plant = await _load_alive(ctx, group_id, uid, now)
+    garden, status, plant, stage_before = await _load_alive(ctx, group_id, uid, now)
     if int(garden.growth) >= GROWTH_MAX:
         raise WhaleError("已经成熟了，先 /收获 吧", hint="成熟后施肥会被浪费", commands=["/收获"])
 
@@ -912,7 +927,7 @@ async def do_fertilize(
     if not ok:
         raise NotEnoughItem(fert_name, 1)
 
-    growth_gain = _scale(base_growth, status.mult, _growth_speed(plant))
+    growth_gain = _scale(base_growth, status.mult, _growth_speed(plant, _seed_grade(garden.seed_id)))
     before = int(garden.growth)
     garden.growth = min(GROWTH_MAX, before + growth_gain)
     growth_gain = int(garden.growth) - before
@@ -922,6 +937,7 @@ async def do_fertilize(
     garden.fert_day = today
     garden.fert_count = used + 1
     garden.stage = _stage_index(garden.growth)
+    stage_up = STAGES[garden.stage] if garden.stage > stage_before else ""
     await ctx.repo.save_garden(garden)
 
     return garden_ui.fertilize_card(
@@ -931,6 +947,7 @@ async def do_fertilize(
         used=used + 1,
         limit=FERT_DAILY_LIMIT,
         mutation_capped=base_mutation > 0 and mutation_gain == 0,
+        stage_up=stage_up,
     )
 
 
@@ -954,7 +971,7 @@ def _normalize_fert(text: str) -> str | None:
 async def do_sun(ctx: SvcCtx, uid: str, name: str, group_id: str) -> Card:
     """``/晒太阳``：每天 1 次（默认 7:00~19:00），收益由天气决定。"""
     now = now_ts()
-    garden, status, plant = await _load_alive(ctx, group_id, uid, now)
+    garden, status, plant, stage_before = await _load_alive(ctx, group_id, uid, now)
     if int(garden.growth) >= GROWTH_MAX:
         raise WhaleError("已经成熟了，先 /收获 吧", hint="成熟后晒太阳会被浪费", commands=["/收获"])
 
@@ -978,7 +995,7 @@ async def do_sun(ctx: SvcCtx, uid: str, name: str, group_id: str) -> Card:
     weather = await _weather_for(ctx, group_id, now)
     base_growth, base_mutation = SUN_WEATHER_GAINS.get(weather.key, SUN_DEFAULT_GAIN)
 
-    growth_gain = _scale(base_growth, status.mult, _growth_speed(plant))
+    growth_gain = _scale(base_growth, status.mult, _growth_speed(plant, _seed_grade(garden.seed_id)))
     before = int(garden.growth)
     garden.growth = min(GROWTH_MAX, before + growth_gain)
     growth_gain = int(garden.growth) - before
@@ -987,6 +1004,7 @@ async def do_sun(ctx: SvcCtx, uid: str, name: str, group_id: str) -> Card:
     garden.sun_day = today
     garden.sun_ts = now
     garden.stage = _stage_index(garden.growth)
+    stage_up = STAGES[garden.stage] if garden.stage > stage_before else ""
     await ctx.repo.save_garden(garden)
 
     return garden_ui.sun_card(
@@ -994,6 +1012,7 @@ async def do_sun(ctx: SvcCtx, uid: str, name: str, group_id: str) -> Card:
         growth_gain=growth_gain,
         mutation_gain=mutation_gain,
         mutation_capped=base_mutation > 0 and mutation_gain == 0,
+        stage_up=stage_up,
     )
 
 
