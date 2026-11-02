@@ -1,4 +1,4 @@
-"""赛博鲸鱼馆 —— 公共常量与数值开关。
+﻿"""赛博鲸鱼馆 —— 公共常量与数值开关。
 
 所有"魔法数字"集中在此，方便平衡调整。硬性规则：
     * 每日重置只做惰性计算（compare day_key），绝不注册定时器。
@@ -149,23 +149,23 @@ FEED_AFFECTION_MARRY_BONUS_CAP = 0.15
 # ---------------------------------------------------------------- 打工
 WORK_MIN_MINUTES = 60
 WORK_MAX_MINUTES = 1440
-WORK_COIN_PER_MINUTE = 0.32    # 每分钟基础鲸币（1 小时约 19，24 小时约 461）
+WORK_COIN_PER_MINUTE = 0.35    # 每分钟基础鲸币（1 小时约 21，24 小时约 504）
 WORK_RANDOM_SPREAD = 0.25      # ±25% 随机浮动
 WORK_BONUS_CHANCE = 0.12       # 摸鱼暴击概率
 WORK_BONUS_RATE = 1.8          # 暴击倍率
 WORK_ENERGY_COST = 0           # 预留字段：体力（当前不做体力系统）
 
 # ---------------------------------------------------------------- 婚姻
-MARRY_COST = 150
+MARRY_COST = 100
 MARRY_BASE_RATE = 0.10
 MARRY_STEP_RATE = 0.10
 MARRY_PITY = 5                 # 第 5 次必中
 
-DIVORCE_COST = 150
+DIVORCE_COST = 100
 DIVORCE_BASE_RATE = 0.50
 DIVORCE_PITY = 2               # 第 2 次必中
 
-NTR_COST = 200
+NTR_COST = 125
 NTR_BASE_RATE = 0.05
 NTR_STEP_RATE = 0.05
 NTR_PITY = 10                  # 第 10 次必中

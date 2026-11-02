@@ -135,7 +135,7 @@ def build_cards() -> list[tuple[str, object]]:
     pond.blocks.append(list_block("群贡献榜 Top5", ["1. 群友…1024 — 42 点", "2. 群友…7788 — 21 点", "3. 群友…0001 — 9 点"]))
 
     marry = card("成婚！", "煤球 把 测试老婆 娶回了后宫", art="marry", tone="success", badge="好感 23")
-    marry.stats = [stat("本次成功率", "30%"), stat("尝试", "第 3/5 次"), stat("消耗", "150 鲸币")]
+    marry.stats = [stat("本次成功率", "30%"), stat("尝试", "第 3/5 次"), stat("消耗", "100 鲸币")]
     marry.blocks.append(
         kv_block(
             "求婚细节",
@@ -143,7 +143,7 @@ def build_cards() -> list[tuple[str, object]]:
                 kv("本次成功率", "30%"),
                 kv("好感度加成", "+11.5%"),
                 kv("尝试次数", "第 3/5 次（5 次内必中）"),
-                kv("消耗", "150 鲸币"),
+                kv("消耗", "100 鲸币"),
                 kv("好感度", "23（+5）"),
                 kv("结果", "成婚！"),
             ],
@@ -218,7 +218,7 @@ def build_cards() -> list[tuple[str, object]]:
             ],
         )
     )
-    help_card.blocks.append(list_block("💘 社交", ["娶群友 @TA [卡] —— 150 鲸币，10% 起，5 次必中", "我的后宫 / 恩爱榜 / 公共老婆"]))
+    help_card.blocks.append(list_block("💘 社交", ["娶群友 @TA [卡] —— 100 鲸币，10% 起，5 次必中", "我的后宫 / 恩爱榜 / 公共老婆"]))
 
     err = error_card("这条鱼太重了，拉不上来", "操作超时，请稍后再试")
 

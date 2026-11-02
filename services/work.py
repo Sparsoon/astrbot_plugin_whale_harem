@@ -2,7 +2,7 @@
 
 规则（需求）：
     * 上工随机时长 t ∈ [配置 60,1440] 分钟（1 小时 ~ 1 天）；等待期间不能再次打工；
-    * **收益与等待时长成正比**：coins = t × 0.32/分钟 × 浮动 ±25%，12% 概率暴击 ×1.8；
+    * **收益与等待时长成正比**：coins = t × 0.35/分钟 × 浮动 ±25%，12% 概率暴击 ×1.8；
     * 到点后本人发一条消息（或再发 /打工）收工，工资一次性到账；
     * 钓鱼与打工互不阻塞：可以一边等鱼一边上班。
 
@@ -45,7 +45,7 @@ def _fmt_clock(ts: int) -> str:
 
 
 def _roll_pay(minutes: int) -> tuple[int, bool]:
-    """按等待时长算工资：时长 × 0.32/分钟 × 浮动 ±25%，12% 暴击 ×1.8。"""
+    """按等待时长算工资：时长 × 0.35/分钟 × 浮动 ±25%，12% 暴击 ×1.8。"""
     spread = max(0.0, float(C.WORK_RANDOM_SPREAD))
     raw = minutes * float(C.WORK_COIN_PER_MINUTE) * rng.uniform(1.0 - spread, 1.0 + spread)
     base = max(WORK_COIN_FLOOR, int(raw))
