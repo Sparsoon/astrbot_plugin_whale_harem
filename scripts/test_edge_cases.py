@@ -95,8 +95,10 @@ async def main() -> int:
     user.last_checkin_day = tu.day_key()  # 今天
     user.feed_day = "2000-01-01"
     user.feed_count = 7
+    user.feed_slots = "0,1,2"
     changed = ctx_mod.settle_user_day(user)
     check("跨天重置 feed_count", changed and user.feed_count == 0, f"count={user.feed_count}")
+    check("跨天清空 feed_slots（不会累计成总计 3 次）", user.feed_slots == "", f"slots={user.feed_slots!r}")
     check("day_key 已更新", user.day_key == tu.day_key())
 
     row = await repo.ensure_harem("g1", "t1", "乙")

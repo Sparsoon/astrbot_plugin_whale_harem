@@ -42,6 +42,8 @@ def settle_user_day(user: User) -> bool:
     if user.feed_day != today:
         user.feed_day = today
         user.feed_count = 0
+        # 关键：跨天必须一起清空 slots，否则第二天会沿用昨天的 0,1,2，永远显示 3/3
+        user.feed_slots = ""
         changed = True
     if user.day_key != today:
         user.day_key = today

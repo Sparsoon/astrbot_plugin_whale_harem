@@ -3,7 +3,7 @@
 > 群共享池塘钓鱼 / 签到喂食打工 / 娶群友与后宫 / 全套指令 Pillow 出图
 > **为 2 核 2G 服务器设计**：全异步、零轮询、连接池封顶 5 条、出图缓存三重限流。
 
-![version](https://img.shields.io/badge/version-1.6.1-4D6BFE) ![runtime](https://img.shields.io/badge/python-3.10%2B-blue) ![db](https://img.shields.io/badge/sqlite-WAL-green) ![license](https://img.shields.io/badge/license-MIT-green)
+![version](https://img.shields.io/badge/version-1.6.2-4D6BFE) ![runtime](https://img.shields.io/badge/python-3.10%2B-blue) ![db](https://img.shields.io/badge/sqlite-WAL-green) ![license](https://img.shields.io/badge/license-MIT-green)
 
 ---
 
@@ -73,16 +73,15 @@ apt install fonts-noto-cjk        # Debian/Ubuntu
 
 ## 3.5 图片里的中文是方块/问号？
 
-插件会按顺序找中文字体：配置 
-ender_font_path → 环境变量 WHALE_FONT_PATH → 系统字体
-（Linux / macOS / Android /system/fonts / Windows）→ **插件自带字体** ssets/fonts/NotoSansSC-Whale.ttf。
-所以正常安装不会因为手机端缺少中文字体而变成方块。
+插件按这个顺序找中文字体：配置项 `render_font_path` → 环境变量 `WHALE_FONT_PATH`
+→ **插件自带字体** `assets/fonts/NotoSansSC-Whale.ttf` → 系统字体（Linux / macOS /
+Android `/system/fonts` / Windows）。每个候选都会先校验能不能真正画出三个不同的汉字，
+只画豆腐块的字体直接跳过，所以 Android 精简环境也不会整张卡变方块。
 
-如果仍然是方块，看启动日志里的 鲸鱼馆中文字体: <路径>：
+如果仍然是方块，看启动日志里的 `鲸鱼馆中文字体: <路径>`：
 
-* 日志显示 未找到中文字体：把 
-ender_font_path 指到一个中文 ttf/otf/ttc；
-* Android/Termux：可填 /system/fonts/NotoSansCJK-Regular.ttc；
+* 日志显示 `未找到中文字体`：把 `render_font_path` 指到一个中文 ttf/otf/ttc；
+* Android/Termux：可填 `/system/fonts/NotoSansCJK-Regular.ttc`；
 * 自带字体只覆盖常用中文，生僻字昵称仍可能缺字，这种情况请配置系统完整字体。
 
 ## 4. 自测（不需要 AstrBot / QQ）

@@ -95,8 +95,20 @@ _font_cache: dict[int, "ImageFont.FreeTypeFont | ImageFont.ImageFont"] = {}
 _default_warned = False
 
 
+def _has_cjk_glyph(font) -> bool:
+    """判断字体是否真的包含中文字形：三个不同汉字的位图必须不同。
+
+    很多 Android 系统字体能加载，但中文会画成同一个"豆腐块"；只调 getbbox 会误判。
+    """
+    try:
+        masks = [bytes(font.getmask(ch)) for ch in ("鲸", "鱼", "花")]
+        return len(set(masks)) > 1
+    except Exception:  # noqa: BLE001 - 取不到位图就按可用处理，交给后续渲染
+        return True
+
+
 def resolve_font_path(preferred: str = "") -> str | None:
-    """按 配置 -> 系统候选 的顺序找第一个可用的中文字体。只探测一次。"""
+    """按 配置 -> 自带字体 -> 系统候选 的顺序找第一个真正含中文的字体。只探测一次。"""
     global _font_path, _font_probed
     if _font_probed:
         return _font_path
@@ -108,17 +120,18 @@ def resolve_font_path(preferred: str = "") -> str | None:
     env_font = os.environ.get("WHALE_FONT_PATH", "")
     if env_font:
         candidates.append(env_font)
-    candidates.extend(_FONT_CANDIDATES)
-    # 系统字体都找不到时（常见于精简 Android / Docker），用插件自带字体兜底
+    # 自带字体优先于系统字体：Android 系统字体经常缺字/只画方块
     if _BUNDLED_FONT.is_file():
         candidates.append(str(_BUNDLED_FONT))
+    candidates.extend(_FONT_CANDIDATES)
 
     for path in candidates:
         try:
             if path and Path(path).is_file():
-                # 真解析一次，确认 Pillow 能读（ttc 可能缺子字体）
                 probe = ImageFont.truetype(path, 16)
-                probe.getbbox("鲸")
+                if not _has_cjk_glyph(probe):
+                    log.warning(f"字体不含中文字形，跳过: {path}")
+                    continue
                 _font_path = path
                 log.info(f"鲸鱼馆中文字体: {path}")
                 return _font_path
