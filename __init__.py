@@ -9,5 +9,5 @@
 否则 AstrBot 加载插件时会触发重复导入与循环依赖。
 """
 
-__version__ = "1.6.2"
+__version__ = "1.6.3"
 __plugin_name__ = "astrbot_plugin_whale_harem"

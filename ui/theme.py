@@ -99,10 +99,15 @@ def _has_cjk_glyph(font) -> bool:
     """判断字体是否真的包含中文字形：三个不同汉字的位图必须不同。
 
     很多 Android 系统字体能加载，但中文会画成同一个"豆腐块"；只调 getbbox 会误判。
+    这里用一张 48x48 小图实际画三遍，兼容所有 Pillow 版本，不依赖 ImagingCore 的内部 API。
     """
     try:
-        masks = [bytes(font.getmask(ch)) for ch in ("鲸", "鱼", "花")]
-        return len(set(masks)) > 1
+        bitmaps = []
+        for ch in ("鲸", "鱼", "花"):
+            im = Image.new("L", (48, 48), 0)
+            ImageDraw.Draw(im).text((0, 0), ch, font=font, fill=255)
+            bitmaps.append(im.tobytes())
+        return len(set(bitmaps)) > 1
     except Exception:  # noqa: BLE001 - 取不到位图就按可用处理，交给后续渲染
         return True
 

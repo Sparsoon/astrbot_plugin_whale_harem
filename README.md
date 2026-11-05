@@ -3,7 +3,7 @@
 > 群共享池塘钓鱼 / 签到喂食打工 / 娶群友与后宫 / 全套指令 Pillow 出图
 > **为 2 核 2G 服务器设计**：全异步、零轮询、连接池封顶 5 条、出图缓存三重限流。
 
-![version](https://img.shields.io/badge/version-1.6.2-4D6BFE) ![runtime](https://img.shields.io/badge/python-3.10%2B-blue) ![db](https://img.shields.io/badge/sqlite-WAL-green) ![license](https://img.shields.io/badge/license-MIT-green)
+![version](https://img.shields.io/badge/version-1.6.3-4D6BFE) ![runtime](https://img.shields.io/badge/python-3.10%2B-blue) ![db](https://img.shields.io/badge/sqlite-WAL-green) ![license](https://img.shields.io/badge/license-MIT-green)
 
 ---
 
